@@ -1,0 +1,106 @@
+const link = 'https://randomuser.me/api/?results=20&nat=us,ca';  
+$(document).ready(function() {   
+  "use strict";
+  $.fn.retrieve = function() {
+    fetch(link)
+    .then((resp) => resp.json())
+    .then(function(data) {      
+      return data.results;
+    })
+    .catch(function(error) {
+      console.log(JSON.stringify(error));
+    });
+  };
+
+  $.fn.display = function() {
+    var db1 ={
+      loadData: function (filter) {
+            var data = $.Deferred();
+              $.ajax({
+                type: "GET",
+                contentType: "application/json",
+                url: link,
+                dataType: "json",
+                data:filter
+            }).done(function (response) {
+                data.resolve(response.d);
+            });
+            return data.promise();
+        }
+     } 
+    
+    $("#jsGrid").jsGrid({
+        width: "100%",
+        height: "400px",  
+        inserting: false,
+        editing: false,
+        sorting: true,
+        paging: true,
+        pageSize: 20,  
+        autoload: true,
+        controller: db1,  
+        fields: [
+          { title: "Gender", name: "gender", type: "text", width: 10  },
+          { title: "First", name: "name.first", type: "text", width: 50  },
+          { title: "Last", name: "name.last", type: "text", width: 50 },
+          { title: "Country", name: "location.country", type: "text", width: 50  },
+          { title: "DOB", name: "dob.date", type: "date" },
+          { type: "control" }]
+      });      
+  };
+  
+  $("#report").click(function() {
+    $.fn.display();
+  });
+  $("#sort").click(function() {
+      var field = $("#sortingField").val();
+      $("#jsGrid").jsGrid("sort", field);
+  });
+  $("#clear").click(function() {
+    $(".raw").html('');
+  });
+  $("#raw").click(function() {
+    $.ajax({
+        url : link,
+        dataType: "text",
+        success : function (data) {
+            $(".raw").html(data);
+          }
+      });
+  });
+
+  const url = 'https://randomuser.me/api/?results=10';
+  const ul = document.getElementById('authors');
+  getauthors();
+  
+  function getauthors(){
+    fetch(url)
+    .then((resp) => resp.json())
+    .then(function(data) {
+      let authors = data.results;
+      return authors.map(function(author) {
+        let li = createNode('li'),
+            img = createNode('img'),
+            span = createNode('span');
+        img.src = author.picture.medium;
+        span.innerHTML = `${author.name.first} ${author.name.last}`;
+        append(li, img);
+        append(li, span);
+        append(ul, li);
+      })
+    })
+    .catch(function(error) {
+    console.log(JSON.stringify(error));
+    });
+  }
+  
+  function createNode(element) {
+    return document.createElement(element);
+  }
+  
+  function append(parent, el) {
+    return parent.appendChild(el);
+  }
+
+
+});
